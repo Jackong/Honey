@@ -76,7 +76,7 @@ func baseEnv() {
 }
 
 func loadConfig() {
-	Project = config.NewConfig(GoPath  + "/src/github.com/Jackong/go-tcp-seed/config/project.json")
+	Project = config.NewConfig(GoPath  + "/src/github.com/Jackong/Honey/config/project.json")
 }
 
 func fileLog(dir, date string, level int) log.Logger {
