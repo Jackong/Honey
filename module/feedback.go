@@ -6,20 +6,18 @@
 package module
 
 import (
-	"fmt"
 	"github.com/Jackong/Honey/net"
+	"fmt"
 )
 
-type feedback struct {
 
-}
-
-func (this *feedback) Handle(req net.Request, res net.Response, conn *net.Conn) {
+func feedback(req net.Request, res net.Response, conn *net.Conn) error {
 	fmt.Println(req.Get("module"))
-	res.Set("module", "feedback")
 	res.Set("code", 0)
+	res.Set("msg", "hello daisy")
+	return nil
 }
 
 func init() {
-	net.Attach("feedback", &feedback{})
+	net.AttachFunc("feedback", feedback)
 }

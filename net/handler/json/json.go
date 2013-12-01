@@ -55,11 +55,14 @@ func (this *Handler) HandleHeader(buf []byte) (uint, error) {
 	return header.Len, nil
 }
 
-func (this *Handler) HandleRequest(buf []byte, conn *net.Conn) ([]byte, error) {
+func (this *Handler) HandleRequest(reqBuf []byte, conn *net.Conn) ([]byte, error) {
+	//decode request
 	request := NewRequest()
-	if err := request.Decode(buf); err != nil {
+	if err := request.Decode(reqBuf); err != nil {
 		return nil, err
 	}
+
+	//check and get module
 	name := request.Get("module")
 	if name == nil {
 		return nil, errors.New("request module not set")
@@ -68,8 +71,16 @@ func (this *Handler) HandleRequest(buf []byte, conn *net.Conn) ([]byte, error) {
 	if module == nil {
 		return nil, errors.New("request module not found " + name.(string))
 	}
+
+	//handle request
 	response := NewResponse()
-	module.Handle(request, response, conn)
+	err := module.Handle(request, response, conn)
+	if err != nil {
+		return nil, err
+	}
+
+	//encode response
+	response.Set("module", name)
 	respBuf, err := this.FormatProtocol(response)
 	if err != nil {
 		return nil, err

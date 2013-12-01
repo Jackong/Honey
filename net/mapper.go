@@ -5,6 +5,10 @@
  */
 package net
 
+import (
+	"errors"
+)
+
 var (
 	mapper map[string]Module
 )
@@ -13,12 +17,17 @@ func init() {
 	mapper = make(map[string]Module)
 }
 
-func Attach(name string, module Module) bool {
+func Attach(name string, module Module) *WrapModule {
 	if _, ok := mapper[name]; ok {
-		return false
+		panic(errors.New("Duplicated module for " + name))
 	}
-	mapper[name] = module
-	return true
+	wrap := &WrapModule{Module: module}
+	mapper[name] = wrap
+	return wrap
+}
+
+func AttachFunc(name string, module ModuleFunc) *WrapModule {
+	return Attach(name, module)
 }
 
 func GetModule(name string) Module {
