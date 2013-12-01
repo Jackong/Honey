@@ -8,7 +8,6 @@ package json
 import (
 	"github.com/Jackong/Honey/net"
 	"encoding/json"
-	"errors"
 )
 
 type Handler struct {
@@ -62,25 +61,14 @@ func (this *Handler) HandleRequest(reqBuf []byte, conn *net.Conn) ([]byte, error
 		return nil, err
 	}
 
-	//check and get module
-	name := request.Get("module")
-	if name == nil {
-		return nil, errors.New("request module not set")
-	}
-	module := net.GetModule(name.(string))
-	if module == nil {
-		return nil, errors.New("request module not found " + name.(string))
-	}
-
 	//handle request
 	response := NewResponse()
-	err := module.Handle(request, response, conn)
+	err := net.Handle(request, response, conn)
 	if err != nil {
 		return nil, err
 	}
 
 	//encode response
-	response.Set("module", name)
 	respBuf, err := this.FormatProtocol(response)
 	if err != nil {
 		return nil, err
