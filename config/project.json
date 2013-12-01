@@ -1,0 +1,27 @@
+{
+    "formal":false,
+    "server": {
+        "name": "Honey",
+        "addr": ":7777"
+    },
+    "log": {
+        "dir": "log",
+        "file": {
+            "level":7
+        },
+        "email": {
+            "user":"jerkong@163.com",
+            "password":"",
+            "host":"smtp.163.com:25",
+            "to":"jerkong@163.com",
+            "subject":"Warning",
+            "level":2
+        }
+    },
+    "db": {
+        "socket":   "/var/run/mysqld/mysqld.sock",
+        "database": "test",
+        "user":     "root",
+        "password": "123456"
+    }
+}
