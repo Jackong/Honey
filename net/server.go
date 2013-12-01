@@ -8,9 +8,12 @@ package net
 import (
 	"net"
 	"io"
+	"github.com/Jackong/log"
+	"time"
 )
 
-func SetUp(addr string, handler Handler) error {
+
+func SetUp(addr string, handler Handler, logger log.Logger) error {
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
@@ -19,25 +22,26 @@ func SetUp(addr string, handler Handler) error {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			handler.HandleAcceptError(err)
+			logger.Alert("accept|error|", err)
 			continue
 		}
+		logger.Alert("accept|success|", conn.RemoteAddr())
 		connection := NewConn(conn)
 		Anonymous.Put(connection.Id, connection)
-		go handleConn(connection, handler)
+		go handleConn(connection, handler, logger)
 	}
 	return nil
 }
 
-func handleConn(conn *Conn, handler Handler) {
+func handleConn(conn *Conn, handler Handler, logger log.Logger) {
 	defer func() {
-		if conn.IsSigned {
-			Signed.Close(conn.Id)
-		} else {
-			Anonymous.Close(conn.Id)
-		}
 		if e := recover(); e != nil {
-			handler.HandleConnError(e)
+			logger.Alert("handle|error|",e)
+			if conn.IsSigned {
+				Signed.Close(conn.Id)
+			} else {
+				Anonymous.Close(conn.Id)
+			}
 		}
 	}()
 
@@ -59,6 +63,7 @@ func handleConn(conn *Conn, handler Handler) {
 }
 
 func HandleRead(conn net.Conn, buf []byte) {
+	conn.SetReadDeadline(time.Now().Add(5 * time.Second))
 	if _, err := io.ReadFull(conn, buf); err != nil {
 		panic(err)
 	}

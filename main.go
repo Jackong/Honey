@@ -12,5 +12,5 @@ import (
 )
 
 func main() {
-	net.SetUp(Project.String("server", "addr"), Handler)
+	net.SetUp(Project.String("server", "addr"), Handler, Log)
 }

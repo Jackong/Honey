@@ -6,8 +6,6 @@
 package net
 
 type Handler interface {
-	HandleAcceptError(error)
-	HandleConnError(interface {})
 	//get header length
 	HeaderLength() int
 	//pass header buffer and return the length of request

@@ -75,10 +75,3 @@ func (this *Handler) HandleRequest(reqBuf []byte, conn *net.Conn) ([]byte, error
 	}
 	return respBuf, nil
 }
-
-func (this *Handler) HandleAcceptError(error) {
-
-}
-func (this *Handler) HandleConnError(interface {}) {
-
-}
