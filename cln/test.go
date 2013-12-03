@@ -19,8 +19,10 @@ func main() {
 	}
 	fmt.Println("write")
 	request := json.NewRequest()
-	request.Set("module", "feedback")
-	request.Set("msg", "ahddd")
+	request.Set("module", "signUp")
+	request.Set("email", "jk6@gmail.com")
+	request.Set("password", "6pswd")
+	request.Set("name", "jk6")
 	err = cln.HandleWrite(request)
 	if err != nil {
 		fmt.Println(err)
@@ -29,5 +31,6 @@ func main() {
 	fmt.Println("read")
 	response := json.NewResponse()
 	cln.HandleRead(response)
+	fmt.Println(response.Get("code"), response.Get("tips"))
 }
 

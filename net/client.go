@@ -42,4 +42,8 @@ func (this *client) HandleRead(res Response) {
 	}
 	response := make([]byte, length)
 	HandleRead(this.Conn, response)
+	err = res.Decode(response)
+	if err != nil {
+		panic(err)
+	}
 }

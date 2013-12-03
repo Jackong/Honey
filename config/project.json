@@ -20,7 +20,9 @@
     },
     "db": {
         "socket":   "/var/run/mysqld/mysqld.sock",
-        "database": "test",
+	    "host": "localhost",
+	    "port": 3306,
+        "database": "honey",
         "user":     "root",
         "password": "123456"
     }

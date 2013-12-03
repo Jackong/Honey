@@ -1,0 +1,6 @@
+package meta;
+
+message user {
+	required string password = 1;
+	required string name = 2;
+}

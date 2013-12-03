@@ -9,7 +9,6 @@ import (
 	"net"
 	"io"
 	"github.com/Jackong/log"
-	"time"
 )
 
 
@@ -63,7 +62,6 @@ func handleConn(conn *Conn, handler Handler, logger log.Logger) {
 }
 
 func HandleRead(conn net.Conn, buf []byte) {
-	conn.SetReadDeadline(time.Now().Add(5 * time.Second))
 	if _, err := io.ReadFull(conn, buf); err != nil {
 		panic(err)
 	}

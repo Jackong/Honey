@@ -9,6 +9,7 @@ import (
 	. "github.com/Jackong/Honey/global"
 	"github.com/Jackong/Honey/net"
 	_ "github.com/Jackong/Honey/module"
+	_ "github.com/Jackong/Honey/module/sign"
 )
 
 func main() {

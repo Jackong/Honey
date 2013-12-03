@@ -117,7 +117,8 @@ func mailLog(date string) log.Logger {
 
 func openDb() {
 	settings := db.DataSource{
-		Socket:   Project.String("db", "socket"),
+		Host:	Project.String("db", "host"),
+		Port:	int(Project.Get("db", "port").(float64)),
 		Database: Project.String("db", "database"),
 		User:     Project.String("db", "user"),
 		Password: Project.String("db", "password"),

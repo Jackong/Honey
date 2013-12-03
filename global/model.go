@@ -10,7 +10,7 @@ import (
 	"github.com/Jackong/db"
 )
 
-func Collection(name string) db.Collection {
+func Col(name string) db.Collection {
 	collection, err := Conn.Collection(name)
 	if err != nil {
 		fmt.Println(err)
