@@ -8,11 +8,11 @@ package net
 import (
 	"net"
 	"io"
-	"github.com/Jackong/log"
+	. "github.com/Jackong/Honey/global"
 )
 
 
-func SetUp(addr string, handler Handler, logger log.Logger) error {
+func SetUp(addr string, handler Handler) error {
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
@@ -21,21 +21,21 @@ func SetUp(addr string, handler Handler, logger log.Logger) error {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			logger.Alert("accept|error|", err)
+			Log.Alert("accept|error|", err)
 			continue
 		}
-		logger.Alert("accept|success|", conn.RemoteAddr())
+		Log.Alert("accept|success|", conn.RemoteAddr())
 		connection := NewConn(conn)
 		Anonymous.Put(connection.Id, connection)
-		go handleConn(connection, handler, logger)
+		go handleConn(connection, handler)
 	}
 	return nil
 }
 
-func handleConn(conn *Conn, handler Handler, logger log.Logger) {
+func handleConn(conn *Conn, handler Handler) {
 	defer func() {
 		if e := recover(); e != nil {
-			logger.Alert("handle|error|",e)
+			Log.Alert("handle|error|",e)
 			if conn.IsSigned {
 				Signed.Close(conn.Id)
 			} else {

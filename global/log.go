@@ -7,8 +7,8 @@ package global
 
 import (
 	"sync"
-	"github.com/Jackong/log/writer"
 	"github.com/Jackong/log"
+	"github.com/Jackong/log/writer"
 )
 
 type asyncMail struct {

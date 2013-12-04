@@ -3,10 +3,11 @@
  * Date: 13-12-1
  * Time: 下午4:32
  */
-package global
+package funcs
 
 import (
 	"github.com/Jackong/Honey/net"
+	. "github.com/Jackong/Honey/global"
 )
 
 func beforeLog(req net.Request, res net.Response, conn *net.Conn) error {

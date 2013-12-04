@@ -7,6 +7,9 @@ package net
 
 import (
 	"errors"
+	"github.com/Jackong/Honey/err"
+	. "github.com/Jackong/Honey/global"
+	"fmt"
 )
 
 var (
@@ -44,14 +47,23 @@ func AllAfter(after...ModuleFunc) {
 }
 
 func Handle(request Request, response Response, conn *Conn) (error){
-	//check and get module
 	name := request.Get("module")
+	defer func() {
+		response.Set("module", name)
+		if e := recover(); e != nil {
+			rtErr := e.(err.Runtime)
+			Log.Error(rtErr)
+			response.Set("code", rtErr.Code)
+			response.Set("msg", rtErr.Msg)
+		}
+	}()
+	//check and get module
 	if name == nil {
-		return errors.New("request module not set")
+		panic(err.Runtime{Code: err.CODE_MODULE_NOT_FOUND, Msg: "module is required, but not found"})
 	}
 	module, ok := mapper[name.(string)]
 	if !ok {
-		return errors.New("request module not found " + name.(string))
+		panic(err.Runtime{Code: err.CODE_MODULE_NOT_FOUND, Msg: fmt.Sprintf("module %v not found", name)})
 	}
 
 	//before handler
@@ -72,8 +84,5 @@ func Handle(request Request, response Response, conn *Conn) (error){
 	for _, afterFunc := range afterFuncs {
 		afterFunc(request, response, conn)
 	}
-	return nil
-
-	response.Set("module", name)
 	return nil
 }

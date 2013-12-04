@@ -6,16 +6,14 @@
 package global
 
 import (
-	"github.com/Jackong/log"
 	"os"
 	"fmt"
 	"time"
 	"github.com/Jackong/db"
 	_ "github.com/Jackong/db/mysql"
-	"github.com/Jackong/log/writer"
 	"github.com/Jackong/Honey/config"
-	"github.com/Jackong/Honey/net"
-	"github.com/Jackong/Honey/net/handler/json"
+	"github.com/Jackong/log"
+	"github.com/Jackong/log/writer"
 )
 
 var (
@@ -24,9 +22,8 @@ var (
 	Time func() time.Time
 	Today func() string
 	Project config.Config
+	DB db.Database
 	Log log.Logger
-	Conn db.Database
-	Handler net.Handler
 )
 
 func init() {
@@ -39,11 +36,10 @@ func init() {
 	fmt.Println("opening db...")
 	openDb()
 
-	fmt.Println("init router...")
+	fmt.Println("init log...")
 	initLog()
-
-	Handler = &json.Handler{}
 }
+
 func initLog() {
 	today := Today()
 	fmt.Println("getting mail log...")
@@ -57,26 +53,6 @@ func initLog() {
 		})
 
 	Log = log.MultiLogger(actionLog, mailLog)
-}
-
-func baseEnv() {
-	Time = func() time.Time {
-		return time.Now()
-	}
-
-	Now = func() string {
-		return Time().Format(FORMAT_DATE_TIME)
-	}
-
-	Today = func() string {
-		return Time().Format(FORMAT_DATE)
-	}
-
-	GoPath = os.Getenv("GOPATH")
-}
-
-func loadConfig() {
-	Project = config.NewConfig(GoPath  + "/src/github.com/Jackong/Honey/config/project.json")
 }
 
 func fileLog(dir, date string, level int) log.Logger {
@@ -115,6 +91,26 @@ func mailLog(date string) log.Logger {
 	return fileLog("email", date, mailLevel)
 }
 
+func baseEnv() {
+	Time = func() time.Time {
+		return time.Now()
+	}
+
+	Now = func() string {
+		return Time().Format(FORMAT_DATE_TIME)
+	}
+
+	Today = func() string {
+		return Time().Format(FORMAT_DATE)
+	}
+
+	GoPath = os.Getenv("GOPATH")
+}
+
+func loadConfig() {
+	Project = config.NewConfig(GoPath  + "/src/github.com/Jackong/Honey/config/project.json")
+}
+
 func openDb() {
 	settings := db.DataSource{
 		Host:	Project.String("db", "host"),
@@ -125,12 +121,12 @@ func openDb() {
 	}
 
 	var err error
-	if Conn, err = db.Open("mysql", settings); err != nil {
+	if DB, err = db.Open("mysql", settings); err != nil {
 		fmt.Println(err)
 		ShutDown()
 	}
 
 	OnShutDown(func() {
-		Conn.Close()
+		DB.Close()
 	})
 }

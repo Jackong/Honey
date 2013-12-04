@@ -11,7 +11,7 @@ import (
 )
 
 func Col(name string) db.Collection {
-	collection, err := Conn.Collection(name)
+	collection, err := DB.Collection(name)
 	if err != nil {
 		fmt.Println(err)
 		ShutDown()

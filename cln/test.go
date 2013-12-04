@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	cln, err := net.NewClient("localhost" + Project.String("server", "addr"), Handler)
+	cln, err := net.NewClient("localhost" + Project.String("server", "addr"), &json.Handler{})
 	if err != nil {
 		fmt.Println(err)
 	}

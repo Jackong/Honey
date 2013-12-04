@@ -5,11 +5,28 @@
  */
 package err
 
-type HandlerError struct {
-	Code int32
+type code int
+
+const (
+	CODE_OK = 0
+	CODE_INPUT = (iota - 1)
+	CODE_MODULE_NOT_FOUND
+)
+
+type Runtime struct {
+	Code int
 	Msg string
 }
 
-func (this HandlerError) Error() string{
-    return this.Msg
+func (this Runtime) Error() string{
+	return this.Msg
+}
+
+type System struct {
+	Code int
+	Msg string
+}
+
+func (this System) Error() string{
+	return this.Msg
 }
