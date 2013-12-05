@@ -5,16 +5,8 @@
  */
 package err
 
-type code int
-
-const (
-	CODE_OK = 0
-	CODE_INPUT = (iota - 1)
-	CODE_MODULE_NOT_FOUND
-)
-
 type Runtime struct {
-	Code int
+	Code code
 	Msg string
 }
 
@@ -23,7 +15,7 @@ func (this Runtime) Error() string{
 }
 
 type System struct {
-	Code int
+	Code code
 	Msg string
 }
 

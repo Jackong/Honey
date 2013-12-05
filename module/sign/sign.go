@@ -11,24 +11,27 @@ import (
 	"github.com/Jackong/db"
 	"code.google.com/p/goprotobuf/proto"
 	"github.com/Jackong/Honey/meta"
-	"fmt"
+	e "github.com/Jackong/Honey/err"
+)
+
+const (
+	RE_EMAIL = `(?i)[A-Z0-9._%+-]+@(?:[A-Z0-9-]+\.)+[A-Z]{2,6}`
+	RE_PASSWORD = `[0-9a-f]{32}`
 )
 
 func signUp(req net.Request, res net.Response, conn *net.Conn) error {
+	email := net.Pattern(req, "email", RE_EMAIL)
+	password := net.Pattern(req, "password", RE_PASSWORD)
+	name := net.Required(req, "name")
+
 	user := Col("user")
-	email := req.Get("email")
-	password := req.Get("password")
-	name := req.Get("name")
-	fmt.Println(email, password, name)
 	_, err := user.Find(db.Cond{
 		"id": email,
 	})
 	if err == nil {
-		res.Set("code", 2)
-		res.Set("tips", "the account is exists")
-		return nil
+		panic(e.Runtime{Code: e.CODE_USER_ACCOUNT_EXIST, Msg: "the account is exists"})
 	}
-	userMeta := &meta.User{Password: proto.String(password.(string)), Name: proto.String(name.(string))}
+	userMeta := &meta.User{Password: proto.String(password), Name: proto.String(name.(string))}
 	buf, err := proto.Marshal(userMeta)
 	if err != nil {
 		return err
@@ -40,7 +43,6 @@ func signUp(req net.Request, res net.Response, conn *net.Conn) error {
 	if err != nil {
 		return err
 	}
-	res.Set("code", 0)
 	return nil
 }
 

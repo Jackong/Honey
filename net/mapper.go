@@ -52,7 +52,7 @@ func Handle(request Request, response Response, conn *Conn) (error){
 		response.Set("module", name)
 		if e := recover(); e != nil {
 			rtErr := e.(err.Runtime)
-			Log.Error(rtErr)
+			Log.Error(fmt.Sprintf("module:%v|%v|%v", name, conn.Id, rtErr))
 			response.Set("code", rtErr.Code)
 			response.Set("msg", rtErr.Msg)
 		}

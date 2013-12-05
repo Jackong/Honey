@@ -31,6 +31,6 @@ func main() {
 	fmt.Println("read")
 	response := json.NewResponse()
 	cln.HandleRead(response)
-	fmt.Println(response.Get("code"), response.Get("tips"))
+	fmt.Println(response.Get("code"), response.Get("msg"))
 }
 

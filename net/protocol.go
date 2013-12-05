@@ -31,7 +31,7 @@ func Required(protocol Protocol, key string) interface {}{
 	if val != nil {
 		return val
 	}
-	panic(err.Runtime{Code: err.CODE_INPUT, Msg: fmt.Sprintf("The %v is required for %v", key, protocol.Get("module"))})
+	panic(err.Runtime{Code: err.CODE_INPUT, Msg: fmt.Sprintf("The %v is required", key)})
 }
 
 func Default(protocol Protocol, key string, value interface {}) interface {}{
@@ -50,9 +50,9 @@ func Pattern(protocol Protocol, key, pattern string) string {
 		if match, _ := regexp.MatchString(pattern, value); match {
 			return value
 		}
-		msg = fmt.Sprintf("The %v must be pattern for %v", key, protocol.Get("module"))
+		msg = fmt.Sprintf("The %v must be pattern", key)
 	default:
-		msg = fmt.Sprintf("The %v must be string type for %v", key, protocol.Get("module"))
+		msg = fmt.Sprintf("The %v must be string type", key)
 	}
 	panic(err.Runtime{Code: err.CODE_INPUT, Msg: msg})
 }
