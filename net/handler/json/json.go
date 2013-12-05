@@ -63,10 +63,7 @@ func (this *Handler) HandleRequest(reqBuf []byte, conn *net.Conn) ([]byte, error
 
 	//handle request
 	response := NewResponse()
-	err := net.Handle(request, response, conn)
-	if err != nil {
-		return nil, err
-	}
+	net.Handle(request, response, conn)
 
 	//encode response
 	respBuf, err := this.FormatProtocol(response)

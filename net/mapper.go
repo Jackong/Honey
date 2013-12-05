@@ -13,9 +13,9 @@ import (
 )
 
 var (
-	beforeFuncs []ModuleFunc
+	beforeFuncs []WrapFunc
 	mapper map[string]Module
-	afterFuncs []ModuleFunc
+	afterFuncs []WrapFunc
 )
 
 func init() {
@@ -38,51 +38,63 @@ func AttachFunc(name string, module ModuleFunc) *WrapModule {
 	return Attach(name, module)
 }
 
-func AllBefore(before...ModuleFunc) {
+func AllBefore(before...WrapFunc) {
 	beforeFuncs = append(beforeFuncs, before...)
 }
 
-func AllAfter(after...ModuleFunc) {
+func AllAfter(after...WrapFunc) {
 	afterFuncs = append(afterFuncs, after...)
 }
 
-func Handle(request Request, response Response, conn *Conn) (error){
+func Handle(request Request, response Response, conn *Conn) {
 	name := request.Get("module")
 	defer func() {
 		response.Set("module", name)
 		if e := recover(); e != nil {
-			rtErr := e.(err.Runtime)
-			Log.Error(fmt.Sprintf("module:%v|%v|%v", name, conn.Id, rtErr))
-			response.Set("code", rtErr.Code)
-			response.Set("msg", rtErr.Msg)
+			handleError(e, name, conn, response)
 		}
 	}()
 	//check and get module
 	if name == nil {
-		panic(err.Runtime{Code: err.CODE_MODULE_NOT_FOUND, Msg: "module is required, but not found"})
+		msg := "Module is required, but not found"
+		Log.Alert(fmt.Sprintf("%v|%v", conn.Id, msg))
+		Result(response, CODE_MODULE_NOT_FOUND, msg)
+		return
 	}
 	module, ok := mapper[name.(string)]
 	if !ok {
-		panic(err.Runtime{Code: err.CODE_MODULE_NOT_FOUND, Msg: fmt.Sprintf("module %v not found", name)})
+		msg := fmt.Sprintf("Module %v not found", name)
+		Log.Alert(fmt.Sprintf("%v|%v", conn.Id, msg))
+		Result(response, CODE_MODULE_NOT_FOUND, msg)
+		return
 	}
 
 	//before handler
 	for _, beforeFunc := range beforeFuncs {
-		err := beforeFunc(request, response, conn)
-		if err != nil {
-			return err
+		beforeFunc(request, response, conn)
+		if HasResult(response) {
+			return
 		}
 	}
 
 	//handle request
 	err := module.Handle(request, response, conn)
 	if err != nil {
-		return err
+		panic(err)
+		return
 	}
 
 	//after handler
 	for _, afterFunc := range afterFuncs {
 		afterFunc(request, response, conn)
 	}
-	return nil
+}
+
+func handleError(e interface {}, module interface {}, conn *Conn, response Response) {
+	switch val := e.(type){
+	case err.Runtime:
+		Result(response, val.Code, val.Msg, fmt.Sprintf("module:%v|%v", module, conn.Id))
+	default:
+		Result(response, CODE_UNKNOWN_ERROR, "unknown error on server", val)
+	}
 }

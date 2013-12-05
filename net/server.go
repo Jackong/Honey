@@ -44,6 +44,7 @@ func handleConn(conn *Conn, handler Handler) {
 		}
 	}()
 
+	//panic when read or write error
 	for {
 		header := make([]byte, handler.HeaderLength())
 		HandleRead(conn, header)

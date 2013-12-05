@@ -6,6 +6,7 @@
 package json
 
 import (
+	"github.com/Jackong/Honey/net"
 	"encoding/json"
 )
 
@@ -21,8 +22,9 @@ func (this *Protocol) Get(name string) interface {}{
 	return this.values[name]
 }
 
-func (this *Protocol) Set(name string, value interface {}) {
+func (this *Protocol) Set(name string, value interface {}) net.Protocol {
 	this.values[name] = value
+	return this
 }
 
 
@@ -40,7 +42,6 @@ func (this *Protocol) Encode() ([]byte, error) {
 	}
 	return buf, nil
 }
-
 
 type Request struct {
 	*Protocol

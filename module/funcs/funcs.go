@@ -10,17 +10,15 @@ import (
 	. "github.com/Jackong/Honey/global"
 )
 
-func beforeLog(req net.Request, res net.Response, conn *net.Conn) error {
+func beforeLog(req net.Request, res net.Response, conn *net.Conn) {
 	Log.Infof("request|addr=%v,id=%v,signed=%v,module=%v", conn.Conn.RemoteAddr(), conn.Id, conn.IsSigned, req.Get("module"))
-	return nil
 }
 
-func afterSuccess(req net.Request, res net.Response, conn *net.Conn) error {
-	if res.Get("code") != nil {
-		return nil
+func afterSuccess(req net.Request, res net.Response, conn *net.Conn) {
+	if net.HasResult(res) {
+		return
 	}
-	res.Set("code", 0)
-	return nil
+	net.Result(res, CODE_OK, "OK")
 }
 
 

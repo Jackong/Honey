@@ -6,7 +6,7 @@
 package err
 
 type Runtime struct {
-	Code code
+	Code int
 	Msg string
 }
 
@@ -15,7 +15,7 @@ func (this Runtime) Error() string{
 }
 
 type System struct {
-	Code code
+	Code int
 	Msg string
 }
 
