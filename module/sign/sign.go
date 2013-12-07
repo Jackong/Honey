@@ -8,9 +8,7 @@ package sign
 import (
 	"github.com/Jackong/Honey/net"
 	. "github.com/Jackong/Honey/global"
-	"github.com/Jackong/db"
-	"code.google.com/p/goprotobuf/proto"
-	"github.com/Jackong/Honey/meta"
+	"github.com/Jackong/Honey/service"
 )
 
 const (
@@ -21,32 +19,25 @@ const (
 func signUp(request net.Request, response net.Response, conn *net.Conn) (err error) {
 	email := net.Pattern(request, "email", RE_EMAIL)
 	password := net.Pattern(request, "password", RE_PASSWORD)
-	name := net.Required(request, "name")
+	name := net.Pattern(request, "name", `[0-9a-zA-Z]{2,15}`)
 
-	user := Col("user")
-	_, err = user.Find(db.Cond{
-		"id": email,
-	})
-	if err == nil {
-		net.Result(response, CODE_USER_ACCOUNT_EXIST, "This account is exists")
-		return
+	if !service.User.SignUp(email, password, name) {
+		net.Result(response, CODE_FAILED, "Account is exists")
 	}
-	userMeta := &meta.User{Password: proto.String(password), Name: proto.String(name.(string))}
-	buf, err := proto.Marshal(userMeta)
-	if err != nil {
-		net.Result(response, CODE_FAILED, "Sign up failed", err)
-		return
-	}
-	_, err = user.Append(db.Item{
-		"id": email,
-		"data": buf,
-	})
-	if err != nil {
-		net.Result(response, CODE_FAILED, "Sign up failed", err)
+	return
+}
+
+func signIn(request net.Request, response net.Response, conn *net.Conn) (err error) {
+	email := net.Pattern(request, "email", RE_EMAIL)
+	password := net.Pattern(request, "password", RE_PASSWORD)
+
+	if !service.User.SignIn(email, password) {
+		net.Result(response, CODE_FAILED, "Account or password is wrong")
 	}
 	return
 }
 
 func init() {
 	net.AttachFunc("signUp", signUp)
+	net.AttachFunc("signIn", signIn)
 }

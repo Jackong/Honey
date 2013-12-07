@@ -19,9 +19,9 @@ func main() {
 	}
 	fmt.Println("write")
 	request := json.NewRequest()
-	request.Set("module", "signUp")
-	request.Set("email", "jk6@gmail.com")
-	request.Set("password", "6pswd")
+	request.Set("module", "signIn")
+	request.Set("email", "jk7@gmail.com")
+	request.Set("password", "01234567890123456789012345678901")
 	request.Set("name", "jk6")
 	err = cln.HandleWrite(request)
 	if err != nil {
