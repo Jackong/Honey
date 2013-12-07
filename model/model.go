@@ -11,17 +11,32 @@ import (
 	. "github.com/Jackong/Honey/global"
 )
 
+var (
+	models map[string]*Model
+)
+
 type Model struct {
 	db.Collection
 }
 
+func init() {
+	models = make(map[string]*Model)
+}
+
 func NewModel(name string) *Model{
+	if model, ok := models[name]; ok {
+		return model
+	}
+
 	collection, err := DB.Collection(name)
 	if err != nil {
 		Log.Alert("%v|New model:%v", name, err)
 		ShutDown()
 	}
-	return &Model{Collection: collection}
+
+	model := &Model{Collection: collection}
+	models[name] = model
+	return model
 }
 
 func (this *Model) Get(id interface {}, msg proto.Message) bool {

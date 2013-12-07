@@ -41,14 +41,13 @@ func init() {
 }
 
 func initLog() {
-	today := Today()
 	fmt.Println("getting mail log...")
-	mailLog := newDateLog(today, mailLog)
+	mailLog := log.NewDateLog(mailLog)
 
 	fileLevel := int(Project.Get("log", "file", "level").(float64))
 
 	fmt.Println("getting action log...")
-	actionLog := newDateLog(today, func(date string) log.Logger {
+	actionLog := log.NewDateLog(func(date string) log.Logger {
 			return fileLog("action", date, fileLevel)
 		})
 
@@ -86,7 +85,7 @@ func mailLog(date string) log.Logger {
 			fmt.Println(err)
 			ShutDown()
 		}
-		return log.NewLogger(&asyncMail{mail}, server, mailLevel)
+		return log.NewLogger(&writer.AsyncMail{mail}, server, mailLevel)
 	}
 	return fileLog("email", date, mailLevel)
 }
