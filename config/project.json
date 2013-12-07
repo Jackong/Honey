@@ -4,6 +4,10 @@
         "name": "Honey",
         "addr": ":7777"
     },
+	"auth": {
+		"hash": "12345",
+		"block": "1234567890123456"
+	},
     "log": {
         "dir": "log",
         "file": {

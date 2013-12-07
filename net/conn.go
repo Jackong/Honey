@@ -11,10 +11,12 @@ import (
 type Conn struct {
 	Id string
 	IsSigned bool
+	IsClose bool
+	Info map[string] interface {}
 	net.Conn
 }
 
 
 func NewConn(conn net.Conn) *Conn{
-	return &Conn{Id: conn.RemoteAddr().String(), Conn: conn}
+	return &Conn{Id: conn.RemoteAddr().String(), Info: make(map[string] interface {}), Conn: conn}
 }

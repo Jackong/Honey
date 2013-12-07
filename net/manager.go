@@ -23,7 +23,6 @@ func (this *manager) Get(id string) *Conn {
 }
 
 func (this *manager) Put(id string, conn *Conn) {
-	this.Close(id)
 	this.connections[id] = conn
 }
 
@@ -45,22 +44,32 @@ func (this *manager) Close(id string) {
 	}
 }
 
-func SignIn(aid, sid string) bool {
-	conn := Anonymous.Get(aid)
+func SignIn(conn *Conn, sid string) bool {
 	if conn == nil {
 		return false
 	}
 	conn.IsSigned = true
+	conn.Id = sid
 	Signed.Put(sid, conn)
+	Anonymous.Del(conn.RemoteAddr().String())
 	return true
 }
 
-func SignOut(sid, aid string) bool {
-	conn := Signed.Get(sid)
+func SignOut(conn *Conn) bool {
 	if conn == nil {
 		return false
 	}
+	Signed.Del(conn.Id)
 	conn.IsSigned = false
-	Anonymous.Put(aid, conn)
+	conn.Id = conn.RemoteAddr().String()
+	Anonymous.Put(conn.Id, conn)
 	return true
+}
+
+func Close(conn *Conn) {
+	if conn.IsSigned {
+		Signed.Close(conn.Id)
+	} else {
+		Anonymous.Close(conn.Id)
+	}
 }

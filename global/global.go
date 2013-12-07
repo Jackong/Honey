@@ -20,6 +20,7 @@ var (
 	GoPath string
 	Now func() string
 	Time func() time.Time
+	TimeStamp func() int64
 	Today func() string
 	Project config.Config
 	DB db.Database
@@ -93,6 +94,10 @@ func mailLog(date string) log.Logger {
 func baseEnv() {
 	Time = func() time.Time {
 		return time.Now()
+	}
+
+	TimeStamp = func() int64 {
+		return Time().Unix()
 	}
 
 	Now = func() string {

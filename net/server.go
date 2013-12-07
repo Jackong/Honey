@@ -36,11 +36,7 @@ func handleConn(conn *Conn, handler Handler) {
 	defer func() {
 		if e := recover(); e != nil {
 			Log.Alert("handle|error|",e)
-			if conn.IsSigned {
-				Signed.Close(conn.Id)
-			} else {
-				Anonymous.Close(conn.Id)
-			}
+			Close(conn)
 		}
 	}()
 
