@@ -6,12 +6,11 @@
 package service
 
 import (
-	"code.google.com/p/goprotobuf/proto"
-	"github.com/Jackong/Honey/meta"
 	. "github.com/Jackong/Honey/global"
-	"github.com/Jackong/Honey/model"
 	"github.com/Jackong/Honey/net"
 	"github.com/gorilla/securecookie"
+	"menteslibres.net/gosexy/db"
+	"github.com/Jackong/Honey/model"
 )
 
 var (
@@ -20,31 +19,46 @@ var (
 
 func init() {
 	User = user{
-		user: model.NewModel("user"),
+		user: model.Collection("user"),
 		auth: securecookie.New([]byte(Project.String("auth", "hash")), []byte(Project.String("auth", "block"))),
 	}
 }
 
 type user struct {
-	user *model.Model
+	user db.Collection
 	auth *securecookie.SecureCookie
 }
 
 func (this user) SignUp(email, password, name string) bool {
-	if this.user.Exist(email) {
+	item, err := this.user.Find(db.Cond{
+		"email": email,
+	})
+	if err == nil && item != nil {
 		Log.Errorf("Account is exists:%v", email)
 		return false
 	}
-	userMeta := &meta.User{Password: proto.String(password), Name: proto.String(name)}
-	return this.user.Set(email, userMeta)
+	_, err = this.user.Append(db.Item{
+		"email": email,
+		"password": password,
+		"name": name,
+	})
+	if err != nil {
+		Log.Errorf("%v|Append meta:%v", this.user.Name(), err)
+		return false
+	}
+	return true
 }
 
 func (this user) SignIn(email, password string) bool {
-	userMeta := &meta.User{}
-	if !this.user.Get(email, userMeta) {
+	item, err := this.user.Find(db.Cond{
+		"email": email,
+	})
+	if err != nil {
+		Log.Errorf("%v|%v is not exists:%v", this.user.Name(), email, err)
 		return false
 	}
-	return userMeta.GetPassword() == password
+
+	return item["password"] == password
 }
 
 func (this user) Auth(conn *net.Conn, email string) (string, bool) {

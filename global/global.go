@@ -9,8 +9,8 @@ import (
 	"os"
 	"fmt"
 	"time"
-	"github.com/Jackong/db"
-	_ "github.com/Jackong/db/mysql"
+	"menteslibres.net/gosexy/db"
+	_ "menteslibres.net/gosexy/db/mongo"
 	"github.com/Jackong/Honey/config"
 	"github.com/Jackong/log"
 	"github.com/Jackong/log/writer"
@@ -118,14 +118,11 @@ func loadConfig() {
 func openDb() {
 	settings := db.DataSource{
 		Host:	Project.String("db", "host"),
-		Port:	int(Project.Get("db", "port").(float64)),
 		Database: Project.String("db", "database"),
-		User:     Project.String("db", "user"),
-		Password: Project.String("db", "password"),
 	}
 
 	var err error
-	if DB, err = db.Open("mysql", settings); err != nil {
+	if DB, err = db.Open(Project.String("db", "name"), settings); err != nil {
 		fmt.Println(err)
 		ShutDown()
 	}
