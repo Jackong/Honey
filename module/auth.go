@@ -13,7 +13,7 @@ import (
 )
 
 func checkAuth(request net.Request, response net.Response, conn *net.Conn) (err error) {
-	if !service.User.IsAuth(request, conn) {
+	if !service.User.CheckAuth(request, conn) {
 		net.Result(response, CODE_FAILED, "Auth failed")
 	}
 	return

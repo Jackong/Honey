@@ -21,17 +21,11 @@ func signUp(request net.Request, response net.Response, conn *net.Conn) (err err
 	password := net.Pattern(request, "password", RE_PASSWORD)
 	name := net.Pattern(request, "name", `[0-9a-zA-Z]{2,15}`)
 
-	if !service.User.SignUp(email, password, name) {
+	auth, ok := service.User.SignUp(conn, email, password, name)
+	if !ok {
 		net.Result(response, CODE_FAILED, "Account is exists")
 		return
 	}
-
-	auth, ok := service.User.Auth(conn, email)
-	if !ok {
-		net.Result(response, CODE_FAILED, "Auth failed")
-		return
-	}
-
 	response.Set("auth", auth)
 	return
 }
@@ -40,16 +34,10 @@ func signIn(request net.Request, response net.Response, conn *net.Conn) (err err
 	email := net.Pattern(request, "email", RE_EMAIL)
 	password := net.Pattern(request, "password", RE_PASSWORD)
 
-	if !service.User.SignIn(email, password) {
+	auth, ok := service.User.SignIn(conn, email, password)
+	if !ok {
 		net.Result(response, CODE_FAILED, "Account or password is wrong")
 	}
-
-	auth, ok := service.User.Auth(conn, email)
-	if !ok {
-		net.Result(response, CODE_FAILED, "Auth failed")
-		return
-	}
-
 	response.Set("auth", auth)
 	return
 }
