@@ -9,8 +9,18 @@ import (
 	"net"
 	"io"
 	. "github.com/Jackong/Honey/global"
+	"time"
 )
 
+var (
+	readDeadline time.Duration
+	writeDeadline time.Duration
+)
+
+func init() {
+	readDeadline = time.Duration(Project.Get("deadline", "read").(float64) * 1e9)
+	writeDeadline = time.Duration(Project.Get("deadline", "write").(float64) * 1e9)
+}
 
 func SetUp(addr string, handler Handler) error {
 	listener, err := net.Listen("tcp", addr)
@@ -59,13 +69,18 @@ func handleConn(conn *Conn, handler Handler) {
 }
 
 func HandleRead(conn net.Conn, buf []byte) {
+	conn.SetReadDeadline(Time().Add(readDeadline))
 	if _, err := io.ReadFull(conn, buf); err != nil {
 		panic(err)
 	}
 }
 
 func HandleWrite(conn net.Conn, buf []byte) {
-	if _, err := conn.Write(buf); err != nil {
-		panic(err)
+	conn.SetReadDeadline(Time().Add(writeDeadline))
+	for n := 0; n < len(buf); {
+		if i, err := conn.Write(buf[n:]); err != nil {
+			panic(err)
+			n += i
+		}
 	}
 }

@@ -57,14 +57,14 @@ func Handle(request Request, response Response, conn *Conn) {
 	//check and get module
 	if name == nil {
 		msg := "Module is required, but not found"
-		Log.Alert(fmt.Sprintf("%v|%v", conn.Id, msg))
+		Log.Alertf("%v|%v", conn.Id, msg)
 		Result(response, CODE_MODULE_NOT_FOUND, msg)
 		return
 	}
 	module, ok := mapper[name.(string)]
 	if !ok {
 		msg := fmt.Sprintf("Module %v not found", name)
-		Log.Alert(fmt.Sprintf("%v|%v", conn.Id, msg))
+		Log.Alert("%v|%v", conn.Id, msg)
 		Result(response, CODE_MODULE_NOT_FOUND, msg)
 		return
 	}

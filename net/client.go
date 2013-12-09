@@ -7,42 +7,59 @@ package net
 
 import (
 	"net"
+	. "github.com/Jackong/Honey/global"
 )
 
-type client struct {
+type Client struct {
 	net.Conn
 	handler Handler
 }
 
-func NewClient(addr string, handler Handler) (cln *client, err error) {
+func NewClient(addr string, handler Handler) (cln *Client, err error) {
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
-		return cln, err
+		Log.Fatalf("new Client:%v", err)
+		return
 	}
-	cln = &client{Conn: conn, handler: handler}
-	return cln, nil
+	cln = &Client{Conn: conn, handler: handler}
+	return
 }
 
+func (this *Client) Handle(request Request, response Response) {
+	defer func() {
+		if e := recover(); e != nil {
+			Log.Fatalf("Client|handle:%v", e)
+		}
+	}()
+	this.HandleWrite(request)
+	this.HandleRead(response)
+}
 
-func (this *client) HandleWrite(req Request) error {
-	buf, err := this.handler.FormatProtocol(req)
+func (this *Client) HandleWrite(request Request) {
+	buf, err := this.handler.FormatProtocol(request)
 	if err != nil {
-		return err
+		panic(err)
 	}
-	this.Conn.Write(buf)
-	return nil
+
+	for n := 0; n < len(buf); {
+		i, err := this.Conn.Write(buf[n:])
+		if err != nil {
+			panic(err)
+		}
+		n+=i
+	}
 }
 
-func (this *client) HandleRead(res Response) {
+func (this *Client) HandleRead(response Response) {
 	header := make([]byte, this.handler.HeaderLength())
 	HandleRead(this.Conn, header)
 	length, err := this.handler.HandleHeader(header)
 	if err != nil {
 		panic(err)
 	}
-	response := make([]byte, length)
-	HandleRead(this.Conn, response)
-	err = res.Decode(response)
+	resBuf := make([]byte, length)
+	HandleRead(this.Conn, resBuf)
+	err = response.Decode(resBuf)
 	if err != nil {
 		panic(err)
 	}

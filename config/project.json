@@ -26,5 +26,9 @@
 	    "name": "mongo",
 	    "host": "localhost",
         "database": "honey"
-    }
+    },
+	"deadline": {
+		"read": 2,
+		"write": 2
+	}
 }
