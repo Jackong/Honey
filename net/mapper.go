@@ -47,21 +47,15 @@ func AllAfter(after...WrapFunc) {
 }
 
 func Handle(request Request, response Response, conn *Conn) {
-	name := request.Get("module")
+	name := Pattern(request, "module", "[a-zA-Z0-9]{2,}")
 	defer func() {
 		response.Set("module", name)
 		if e := recover(); e != nil {
 			handleError(e, name, conn, response)
 		}
 	}()
-	//check and get module
-	if name == nil {
-		msg := "Module is required, but not found"
-		Log.Alertf("%v|%v", conn.Id, msg)
-		Result(response, CODE_MODULE_NOT_FOUND, msg)
-		return
-	}
-	module, ok := mapper[name.(string)]
+	//check module
+	module, ok := mapper[name]
 	if !ok {
 		msg := fmt.Sprintf("Module %v not found", name)
 		Log.Alert("%v|%v", conn.Id, msg)

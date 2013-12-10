@@ -10,6 +10,7 @@ import (
 	"github.com/Jackong/Honey/net"
 	"github.com/Jackong/Honey/net/handler/json"
 	. "github.com/Jackong/Honey/global"
+	"strings"
 )
 
 func client() *net.Client{
@@ -17,118 +18,61 @@ func client() *net.Client{
 	return cln
 }
 
-func TestEmptyHeader(t *testing.T) {
-	cln := client()
-	if 	n, err := cln.Conn.Write([]byte("")); err != nil {
-		t.Error(n, err)
-	}
-	buf := make([]byte, 12)
-	_, err := cln.Conn.Read(buf)
-	t.Log(err)
-	if err == nil {
-		t.Error("empty header, it should be close for time out")
+var (
+	customProtocolTest = []struct {
+	input string
+	error string
+}{
+	{"", "EOF"},
+	{"1234567890", "EOF"},
+	{"123456789012", "EOF"},
+	{`{"len":10000}`, "The specified network name is no longer available."},
+	{`{"len":123}*`, "EOF"},
+	{`{"len":123}*{"module":"xxx"}`, "EOF"},
+	{`{"len":13}**{"module":""}`, "EOF"},
+	{`{"len":14}**{"module":"x"}`, "EOF"},
+	{`{"len":15}**{"module":null}`, "EOF"},
+	{`{"len":15}**{"module":1.25}`, "EOF"},
+	{`{"len":12}**{"module":0}`, "EOF"},
+	{`{"len":15}**{"module":true}`, "EOF"},
+	{`{"len":19}**{"notModule":"xxx"}`, "EOF"},
+	{`{"len":12}*{"module":"xxxwwwwwww"}`, "The specified network name is no longer available."},
+}
+	moduleNotFoundTest = []struct {
+	key string
+	value interface {}
+	code int
+}{
+	{"module", "xx", CODE_MODULE_NOT_FOUND},
+}
+)
+
+func TestCustomProtocol(t *testing.T) {
+	for _, data := range customProtocolTest {
+		cln := client()
+		if 	n, err := cln.Conn.Write([]byte(data.input)); err != nil {
+			t.Error(n, err)
+		}
+		buf := make([]byte, 12)
+		_, err := cln.Conn.Read(buf)
+
+		if !strings.Contains(err.Error(), data.error) {
+			t.Errorf("cln.Write(%v): expect [%v], actual [%v]", data.input, data.error, err.Error())
+		}
 	}
 }
 
-
-func TestSmallerHeader(t *testing.T) {
-	cln := client()
-	if 	n, err := cln.Conn.Write([]byte("1234567890")); err != nil {
-		t.Error(n, err)
-	}
-	buf := make([]byte, 12)
-	_, err := cln.Conn.Read(buf)
-	t.Log(err)
-	if err == nil {
-		t.Error("not enough header, it should be close for time out")
-	}
-}
-
-func TestBadHeader(t *testing.T) {
-	cln := client()
-	if n, err := cln.Conn.Write([]byte("123456789012")); err != nil {
-		t.Error(n, err)
-	}
-	buf := make([]byte, 12)
-	_, err := cln.Conn.Read(buf)
-	t.Log(err)
-	if err == nil {
-		t.Error("client should be close for bad header")
-	}
-}
-
-func TestLargeHeader(t *testing.T) {
-	cln := client()
-	if n, err := cln.Conn.Write([]byte(`{"len":10000}`)); err != nil {
-		t.Error(n, err)
-	}
-	buf := make([]byte, 12)
-	_, err := cln.Conn.Read(buf)
-	t.Log(err)
-	if err == nil {
-		t.Error("so large header should be treated as bad header")
-	}
-}
-
-func TestEmptyBody(t *testing.T) {
-	cln := client()
-	if n, err := cln.Conn.Write([]byte(`{"len":123}*`)); err != nil {
-		t.Error(n, err)
-	}
-	buf := make([]byte, 12)
-	_, err := cln.Conn.Read(buf)
-	t.Log(err)
-	if err == nil {
-		t.Error("empty body, it should be close for time out")
-	}
-}
-
-func TestBadSmallBody(t *testing.T) {
-	cln := client()
-	if n, err := cln.Conn.Write([]byte(`{"len":123}*{"module":"xxx"}`)); err != nil {
-		t.Error(n, err)
-	}
-	buf := make([]byte, 12)
-	_, err := cln.Conn.Read(buf)
-	t.Log(err)
-	if err == nil {
-		t.Error("not enough body, it should be close for time out")
-	}
-}
-
-func TestBadLargeBody(t *testing.T) {
-	cln := client()
-	if n, err := cln.Conn.Write([]byte(`{"len":12}*{"module":"xxxwwwwwww"}`)); err != nil {
-		t.Error(n, err)
-	}
-	buf := make([]byte, 12)
-	_, err := cln.Conn.Read(buf)
-	t.Log(err)
-	if err == nil {
-		t.Error("so large body, it should be treated as bad body")
-	}
-}
-
-func TestUnknownModule(t *testing.T) {
-	request := json.NewRequest()
-	request.Set("module", "xxx")
-	moduleNotFound(request, t)
-}
-
-func TestUnsetModule(t *testing.T) {
-	request := json.NewRequest()
-	request.Set("notModule", "xxx")
-	moduleNotFound(request, t)
-}
-
-func moduleNotFound(request net.Request, t *testing.T) {
-	cln := client()
-	response := json.NewResponse()
-	cln.Handle(request, response)
-	if request.Get("module") != response.Get("module") {
-		t.Error("wrong response module")
-	}
-	if CODE_MODULE_NOT_FOUND != int(response.Get("code").(float64)) {
-		t.Error("wrong response code", response.Get("code"))
+func TestModuleNotFound(t *testing.T) {
+	for _, data := range moduleNotFoundTest {
+		cln := client()
+		request, response := json.NewRequest(), json.NewResponse()
+		request.Set(data.key, data.value)
+		cln.Handle(request, response)
+		if request.Get("module") != response.Get("module") {
+			t.Errorf("%v:%v|response.Get(\"module\"): expect [%v], actual [%v]", data.key, data.value, request.Get("module"), response.Get("module"))
+		}
+		if data.code != int(response.Get("code").(float64)) {
+			t.Errorf("%v:%v|response.Get(\"code\"): expect [%v], actual [%v]", data.key, data.value, data.code, response.Get("code"))
+		}
 	}
 }
