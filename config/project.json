@@ -28,7 +28,7 @@
         "database": "honey"
     },
 	"deadline": {
-		"read": 2,
-		"write": 2
+		"read": 300,
+		"write": 300
 	}
 }
