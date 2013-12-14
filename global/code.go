@@ -14,7 +14,8 @@ const (
 )
 
 const (
-	TIPS_LABEL = iota
+	TIPS_NIL = iota
+	TIPS_LABEL
 	TIPS_FLOAT
 	TIPS_ALERT
 	TIPS_CONFIRMATION
